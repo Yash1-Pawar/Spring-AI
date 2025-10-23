@@ -1,4 +1,4 @@
-package com.ai;
+package com.ai.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 

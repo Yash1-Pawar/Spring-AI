@@ -40,5 +40,16 @@ public class Controller {
 		}
 		return ResponseEntity.ok(queryAiWithEntity);
 	}
+	
+	@PostMapping("/chat/prompt-templating")
+	public ResponseEntity<?> aiQueryWithPromptTemplating(@RequestBody AiRequest aiRequest) {
+		String response = null;
+		try {
+			response = this.chatService.queryAiWithPromptTemplating(aiRequest.prompt(), aiRequest.model());
+		} catch (RuntimeException e) {
+			return ResponseEntity.badRequest().body(e.getMessage() + ". Supported models are 'ollama' and 'openai'.");
+		}
+		return ResponseEntity.ok(response);
+	}
 
 }

@@ -1,9 +1,14 @@
 package com.ai.service;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.ai.template.st.StTemplateRenderer;
 import org.springframework.stereotype.Service;
 
 import com.ai.utility.ChatClientFactory;
@@ -32,19 +37,49 @@ public class ChatServiceImpl implements ChatService {
 	@Override
 	public AiResponse queryAiWithEntity(String query, String model) {
 		ChatClient chatClient = this.getChatClient(model);
-		Prompt prompt = new Prompt(query);
+//		Prompt prompt = new Prompt(query);
 //		var response = chatClient
 //				.prompt(prompt)
 //				.call()
 //				.entity(AiResponse.class);
 		var response = chatClient
-				.prompt(prompt)
+				.prompt()
+				.user(query)
 				.call()
 				.entity(AiResponse.class);
 		
 		log.info("AI Response Entity: {}", response);
 		
 		return response;
+	}
+	
+	@Override
+	public String queryAiWithPromptTemplating(String query, String model) {
+		ChatClient chatClient = this.getChatClient(model);
+		
+		PromptTemplate promptTemplate = PromptTemplate.builder()
+				.renderer(StTemplateRenderer.builder().startDelimiterToken('{').endDelimiterToken('}').build())
+				.template("""
+						You are a helpful AI assistant. Please answer the following question:
+						{user_query}
+						""")
+				.build();
+		String userPrompt = promptTemplate.render(Map.of("user_query", query));
+		
+		
+		SystemPromptTemplate systemPromptTemplate = SystemPromptTemplate.builder()
+				.template("You are an expert in Coding. Always provide {language} code examples only without explanation.")
+				.build();
+		String systemPrompt = systemPromptTemplate.render(Map.of("language", "Java"));
+		
+		var queryResponse = chatClient
+				.prompt()
+				.user(userPrompt)
+				.system(systemPrompt)
+				.call()
+				.content();
+		
+		return queryResponse;
 	}
 	
 	public ChatClient getChatClient(String model) {

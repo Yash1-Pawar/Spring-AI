@@ -6,7 +6,6 @@ spring:
         options:
           model: gpt-4o-mini
           temperature: 0.7
-#          max-completion-tokens: 200
     chat:
       client:
         enabled: false
@@ -16,3 +15,9 @@ spring:
         options:
           model: codellama:latest
           temperature: 0.5
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+logging:
+  level:
+    "[org.springframework.ai.chat.client.advisor]": DEBUG

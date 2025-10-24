@@ -1,6 +1,7 @@
 package com.ai.config;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 
+import com.ai.service.CustomLoggerAdvisor;
 import com.ai.utility.AppConstants;
 
 import jakarta.annotation.PostConstruct;
@@ -30,6 +32,8 @@ public class AppConfig {
 	@Bean(name = AppConstants.OPEN_AI_CHAT_CLIENT)
 	ChatClient openAiChatClient(OpenAiChatModel openAiChatModel) {
 		return ChatClient.builder(openAiChatModel)
+//				.defaultAdvisors(new SimpleLoggerAdvisor())
+				.defaultAdvisors(new CustomLoggerAdvisor())
 				.defaultSystem(defaultSystemPrompt)
 				.defaultOptions(OpenAiChatOptions.builder()
 						.maxCompletionTokens(200)

@@ -1,12 +1,13 @@
 package com.ai.service;
 
+import com.ai.model.AiRequest;
 import com.ai.model.AiResponse;
 
 public interface ChatService {
 
-	String queryAi(String query, String model);
+	String queryAi(String query, String model, String userId);
 
-	AiResponse queryAiWithEntity(String query, String model);
+	AiResponse queryAiWithEntity(AiRequest aiRequest);
 
-	String queryAiWithPromptTemplating(String query, String model);
+	String queryAiWithPromptTemplating(AiRequest aiRequest);
 }

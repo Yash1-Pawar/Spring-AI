@@ -5,6 +5,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
@@ -12,7 +13,7 @@ import org.springframework.ai.template.st.StTemplateRenderer;
 import org.springframework.stereotype.Service;
 
 import com.ai.utility.ChatClientFactory;
-
+import com.ai.model.AiRequest;
 import com.ai.model.AiResponse;
 import com.ai.utility.AiModel;
 
@@ -28,15 +29,20 @@ public class ChatServiceImpl implements ChatService {
 	}
 	
 	@Override
-	public String queryAi(String query, String model) {
+	public String queryAi(String query, String model, String userId) {
 		ChatClient chatClient = this.getChatClient(model);
-		var queryResponse = chatClient.prompt().user(query).call().content();
+		var queryResponse = chatClient
+				.prompt()
+				.advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, userId))
+				.user(query)
+				.call()
+				.content();
 		return queryResponse;
 	}
 	
 	@Override
-	public AiResponse queryAiWithEntity(String query, String model) {
-		ChatClient chatClient = this.getChatClient(model);
+	public AiResponse queryAiWithEntity(AiRequest aiRequest) {
+		ChatClient chatClient = this.getChatClient(aiRequest.model().name());
 //		Prompt prompt = new Prompt(query);
 //		var response = chatClient
 //				.prompt(prompt)
@@ -44,7 +50,8 @@ public class ChatServiceImpl implements ChatService {
 //				.entity(AiResponse.class);
 		var response = chatClient
 				.prompt()
-				.user(query)
+				.advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, aiRequest.userId()))
+				.user(aiRequest.prompt())
 				.call()
 				.entity(AiResponse.class);
 		
@@ -54,8 +61,8 @@ public class ChatServiceImpl implements ChatService {
 	}
 	
 	@Override
-	public String queryAiWithPromptTemplating(String query, String model) {
-		ChatClient chatClient = this.getChatClient(model);
+	public String queryAiWithPromptTemplating(AiRequest aiRequest) {
+		ChatClient chatClient = this.getChatClient(aiRequest.model().name());
 		
 		PromptTemplate promptTemplate = PromptTemplate.builder()
 				.renderer(StTemplateRenderer.builder().startDelimiterToken('{').endDelimiterToken('}').build())
@@ -64,7 +71,7 @@ public class ChatServiceImpl implements ChatService {
 						{user_query}
 						""")
 				.build();
-		String userPrompt = promptTemplate.render(Map.of("user_query", query));
+		String userPrompt = promptTemplate.render(Map.of("user_query", aiRequest.prompt()));
 		
 		
 		SystemPromptTemplate systemPromptTemplate = SystemPromptTemplate.builder()
@@ -74,6 +81,7 @@ public class ChatServiceImpl implements ChatService {
 		
 		var queryResponse = chatClient
 				.prompt()
+				.advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, aiRequest.userId()))
 				.user(userPrompt)
 				.system(systemPrompt)
 				.call()

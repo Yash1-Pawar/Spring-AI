@@ -10,5 +10,10 @@ public record AiRequest(
 		String prompt, 
 		
 		@Schema(description = "The AI model to use", example = "ollama")
-		AiModel model) {
+		AiModel model,
+		
+		@Schema(description = "The user ID making the request", example = "123")
+		String userId
+		
+		) {
 }

@@ -30,13 +30,11 @@ public class Controller {
 
 	@Operation(summary = "Query AI with simple query parameter")
 	@GetMapping("/chat")
-	public ResponseEntity<String> aiQuery(String query,
-			 @Parameter(
-			            description = "Name of the AI model to use",
-			            schema = @Schema(allowableValues = {"ollama", "openai"})
-			        )
-			@RequestParam(defaultValue = "ollama") String model) {
-		String queryAi = this.chatService.queryAi(query, model);
+	public ResponseEntity<String> aiQuery(@RequestParam String query,
+			@Parameter(description = "Name of the AI model to use", schema = @Schema(allowableValues = { "ollama",
+					"openai" })) @RequestParam(defaultValue = "ollama") String model,
+			@RequestParam String userId) {
+		String queryAi = this.chatService.queryAi(query, model, userId);
 		return ResponseEntity.ok(queryAi);
 	}
 
@@ -47,7 +45,7 @@ public class Controller {
 			@RequestBody AiRequest aiRequest) {
 		AiResponse queryAiWithEntity = null;
 		try {
-			queryAiWithEntity = this.chatService.queryAiWithEntity(aiRequest.prompt(), aiRequest.model().name());
+			queryAiWithEntity = this.chatService.queryAiWithEntity(aiRequest);
 		} catch (RuntimeException e) {
 			return ResponseEntity.badRequest().body(e.getMessage() + ". Supported models are 'ollama' and 'openai'.");
 		}
@@ -61,7 +59,7 @@ public class Controller {
 			@RequestBody AiRequest aiRequest) {
 		String response = null;
 		try {
-			response = this.chatService.queryAiWithPromptTemplating(aiRequest.prompt(), aiRequest.model().name());
+			response = this.chatService.queryAiWithPromptTemplating(aiRequest);
 		} catch (RuntimeException e) {
 			return ResponseEntity.badRequest().body(e.getMessage() + ". Supported models are 'ollama' and 'openai'.");
 		}

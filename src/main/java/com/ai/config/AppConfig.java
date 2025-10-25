@@ -7,6 +7,12 @@ import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvi
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
+import org.springframework.ai.rag.preretrieval.query.transformation.TranslationQueryTransformer;
+import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,19 +43,11 @@ public class AppConfig {
 	ChatClient openAiChatClient(OpenAiChatModel openAiChatModel, ChatMemory chatMemory, VectorStore vectorStore) {
 		
 //		Chat Memory configured via Advisors
-		MessageChatMemoryAdvisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
-		
-		QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor
-				.builder(vectorStore)
-				.searchRequest(SearchRequest.builder()
-						.topK(3)
-						.similarityThreshold(0.5)
-						.build())
-				.build();
+		MessageChatMemoryAdvisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();	
 		
 		return ChatClient.builder(openAiChatModel)
-//				.defaultAdvisors(new SimpleLoggerAdvisor())
-				.defaultAdvisors(new CustomLoggerAdvisor(), messageChatMemoryAdvisor, questionAnswerAdvisor)
+//				.defaultAdvisors(new CustomLoggerAdvisor())
+				.defaultAdvisors(new SimpleLoggerAdvisor(), messageChatMemoryAdvisor)
 				.defaultSystem(defaultSystemPrompt)
 				.defaultOptions(OpenAiChatOptions.builder()
 						.maxCompletionTokens(200)

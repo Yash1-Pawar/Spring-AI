@@ -9,7 +9,15 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
+import org.springframework.ai.rag.preretrieval.query.transformation.TranslationQueryTransformer;
+import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.template.st.StTemplateRenderer;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
 import com.ai.utility.ChatClientFactory;
@@ -23,9 +31,11 @@ public class ChatServiceImpl implements ChatService {
 	public static final Logger log = LoggerFactory.getLogger(ChatServiceImpl.class);
 	
 	public ChatClientFactory chatClientFactory;
+	public VectorStore vectorStore;
 	
-	public ChatServiceImpl(ChatClientFactory aiFactory) {
+	public ChatServiceImpl(ChatClientFactory aiFactory, VectorStore vectorStore) {
 		this.chatClientFactory = aiFactory;
+		this.vectorStore = vectorStore;
 	}
 	
 	@Override
@@ -87,6 +97,41 @@ public class ChatServiceImpl implements ChatService {
 				.call()
 				.content();
 		
+		return queryResponse;
+	}
+	
+	@Override
+	public String queryAiWithRag(String query, String model, String userId) {
+		ChatClient chatClient = this.getChatClient(model);
+		
+//		Implementing Advanced RAG with Modular Advisors
+		var retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
+			
+				.queryTransformers(
+						RewriteQueryTransformer.builder().chatClientBuilder(chatClient.mutate().clone()).build(),
+						TranslationQueryTransformer.builder().chatClientBuilder(chatClient.mutate().clone()).targetLanguage("english").build()
+				)
+				
+				.documentRetriever(
+						VectorStoreDocumentRetriever.builder()
+							.vectorStore(vectorStore)
+							.similarityThreshold(0.73)
+						    .topK(10)
+							.build()
+				)
+				
+				.documentJoiner(new ConcatenationDocumentJoiner())
+				.queryAugmenter(ContextualQueryAugmenter.builder().allowEmptyContext(true).build())
+			
+			.build();
+		
+		var queryResponse = chatClient
+				.prompt()
+				.advisors(retrievalAugmentationAdvisor)
+				.advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, userId))
+				.user(query)
+				.call()
+				.content();
 		return queryResponse;
 	}
 	

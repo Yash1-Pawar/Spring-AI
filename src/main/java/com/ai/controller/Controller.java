@@ -38,6 +38,16 @@ public class Controller {
 		return ResponseEntity.ok(queryAi);
 	}
 
+	@Operation(summary = "Query AI with RAG (Only Tells about Java and Spring Boot)")
+	@GetMapping("/chat/rag")
+	public ResponseEntity<String> aiQueryWithRag(@RequestParam String query,
+			@Parameter(description = "Name of the AI model to use", schema = @Schema(allowableValues = { "ollama",
+					"openai" })) @RequestParam(defaultValue = "ollama") String model,
+			@RequestParam String userId) {
+		String queryAi = this.chatService.queryAiWithRag(query, model, userId);
+		return ResponseEntity.ok(queryAi);
+	}
+
 	@Operation(summary = "Query AI with Response Entity")
 	@PostMapping("/chat/entity")
 	public ResponseEntity<?> aiQueryWithEntity(

@@ -12,7 +12,7 @@ import java.util.List;
 public class VectorDbInitializer {
 
 //	ONE TIME 
-    @Bean
+//    @Bean
     CommandLineRunner loadJavaSpringDocs(VectorStore vectorStore) {
         return args -> {
             List<Document> docs = List.of(
@@ -38,7 +38,27 @@ public class VectorDbInitializer {
                 new Document("The Spring AI project enables integrating AI models like OpenAI or Ollama directly in Spring Boot applications."),
                 new Document("If user asks about code examples, provide only java code."),
                 new Document("Don't provide any other language code except java."),
-                new Document("You can answer any personal questions which were informed by user in previous conversation.")
+                new Document("You can answer any personal questions which were informed by user in previous conversation."),
+                new Document("Java is an object-oriented programming language that supports concepts like inheritance, encapsulation, and polymorphism."),
+                new Document("The Java Virtual Machine, or JVM, executes compiled bytecode and provides platform independence."),
+                new Document("The JDK includes tools like the compiler, debugger, and libraries required for Java development."),
+                new Document("Garbage Collection in Java automatically manages memory by reclaiming unused objects."),
+                new Document("Java supports multithreading, allowing concurrent execution of multiple parts of a program."),
+                new Document("In Java, the 'final' keyword can be used with variables, methods, and classes to prevent modification."),
+                new Document("Interfaces in Java define a contract of methods that implementing classes must fulfill."),
+                new Document("Abstract classes in Java can have both abstract methods and concrete method implementations."),
+                new Document("Java Collections Framework provides classes and interfaces for working with data structures like lists, sets, and maps."),
+                new Document("Generics in Java enable type safety and eliminate the need for explicit casting in collections."),
+                new Document("Java Streams API allows functional-style operations on collections such as filter, map, and reduce."),
+                new Document("Exception handling in Java uses try, catch, finally, throw, and throws keywords."),
+                new Document("Java 8 introduced lambda expressions and functional interfaces to support functional programming."),
+                new Document("Java uses access modifiers like public, private, protected, and default to control visibility of classes and members."),
+                new Document("Serialization in Java allows converting an object into a byte stream for storage or transmission."),
+                new Document("Immutable classes in Java, such as String, cannot have their state changed after creation."),
+                new Document("Java uses synchronized blocks and methods to handle thread safety in concurrent programs."),
+                new Document("The 'volatile' keyword in Java ensures visibility of changes to variables across threads."),
+                new Document("Java's Reflection API allows runtime inspection and modification of classes, methods, and fields."),
+                new Document("Enums in Java represent a fixed set of constants and can include fields and methods.")
             );
 
             vectorStore.add(docs);

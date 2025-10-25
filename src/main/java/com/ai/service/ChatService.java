@@ -10,4 +10,6 @@ public interface ChatService {
 	AiResponse queryAiWithEntity(AiRequest aiRequest);
 
 	String queryAiWithPromptTemplating(AiRequest aiRequest);
+
+	String queryAiWithRag(String query, String model, String userId);
 }

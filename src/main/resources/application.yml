@@ -11,6 +11,7 @@ spring:
         enabled: false
     vectorstore:
       pgvector:
+        initialize-schema: true
         index-type: HNSW
         distance-type: COSINE_DISTANCE
         dimensions: 1536
@@ -22,3 +23,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/springAi
     username: myuser
     password: mypassword
+
+logging:
+  level:
+    org.springframework.ai.chat.client.advisor: DEBUG

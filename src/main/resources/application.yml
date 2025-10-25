@@ -9,15 +9,16 @@ spring:
     chat:
       client:
         enabled: false
-    ollama:
-      base-url: http://localhost:11434
-      chat:
-        options:
-          model: codellama:latest
-          temperature: 0.5
+    vectorstore:
+      pgvector:
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        dimensions: 1536
+        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
   jackson:
     mapper:
       accept-case-insensitive-enums: true
-logging:
-  level:
-    "[org.springframework.ai.chat.client.advisor]": DEBUG
+  datasource:
+    url: jdbc:postgresql://localhost:5432/springAi
+    username: myuser
+    password: mypassword

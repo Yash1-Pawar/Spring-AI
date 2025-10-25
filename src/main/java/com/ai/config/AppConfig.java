@@ -3,10 +3,12 @@ package com.ai.config;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,14 +34,22 @@ public class AppConfig {
 	}
 	
 	@Bean(name = AppConstants.OPEN_AI_CHAT_CLIENT)
-	ChatClient openAiChatClient(OpenAiChatModel openAiChatModel, ChatMemory chatMemory) {
+	ChatClient openAiChatClient(OpenAiChatModel openAiChatModel, ChatMemory chatMemory, VectorStore vectorStore) {
 		
 //		Chat Memory configured via Advisors
 		MessageChatMemoryAdvisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
 		
+		QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor
+				.builder(vectorStore)
+				.searchRequest(SearchRequest.builder()
+						.topK(3)
+						.similarityThreshold(0.5)
+						.build())
+				.build();
+		
 		return ChatClient.builder(openAiChatModel)
 //				.defaultAdvisors(new SimpleLoggerAdvisor())
-				.defaultAdvisors(new CustomLoggerAdvisor(), messageChatMemoryAdvisor)
+				.defaultAdvisors(new CustomLoggerAdvisor(), messageChatMemoryAdvisor, questionAnswerAdvisor)
 				.defaultSystem(defaultSystemPrompt)
 				.defaultOptions(OpenAiChatOptions.builder()
 						.maxCompletionTokens(200)
@@ -48,9 +58,6 @@ public class AppConfig {
 				.build();
 	}
 	
-	@Bean(name = AppConstants.OLLAMA_CHAT_CLIENT)
-	ChatClient ollamaChatClient(OllamaChatModel ollamaChatModel) {
-		return ChatClient.builder(ollamaChatModel).build();
-	}
+	
 	
 }

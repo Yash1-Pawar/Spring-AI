@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.web.client.RestClient;
 
+import com.ai.service.AiTools;
 import com.ai.service.CustomLoggerAdvisor;
 import com.ai.utility.AppConstants;
 
@@ -31,6 +33,15 @@ public class AppConfig {
 		System.err.println("Using OpenAI API Key: " + OPENAI_API_KEY);
 	}
 	
+	@Bean
+	RestClient restClient() {
+		return RestClient
+				.builder()
+				.baseUrl("https://api.weatherapi.com")
+				.defaultHeader("Accept", "application/json")
+				.build();
+	}
+	
 	@Bean(name = AppConstants.OPEN_AI_CHAT_CLIENT)
 	ChatClient openAiChatClient(OpenAiChatModel openAiChatModel, ChatMemory chatMemory) {
 		
@@ -41,6 +52,7 @@ public class AppConfig {
 //				.defaultAdvisors(new SimpleLoggerAdvisor())
 				.defaultAdvisors(new CustomLoggerAdvisor(), messageChatMemoryAdvisor)
 				.defaultSystem(defaultSystemPrompt)
+				.defaultTools(new AiTools(restClient()))
 				.defaultOptions(OpenAiChatOptions.builder()
 						.maxCompletionTokens(200)
 						.temperature(0.7)
